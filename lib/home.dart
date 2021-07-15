@@ -67,7 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Container(
                 child: Text(
-                  "Let's  shorten URL's!",
+                  "Let's shorten URL's!",
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.w500),
                 ),
               ),
