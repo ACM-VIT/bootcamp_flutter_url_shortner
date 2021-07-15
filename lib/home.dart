@@ -2,6 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter/services.dart';
+import 'package:share/share.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -45,6 +47,11 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  _shareUrl(String url) {
+    Clipboard.setData(ClipboardData(text: url));
+    Share.share(url);
+  }
+
   _launchURL(String _url) async => await canLaunch(_url)
       ? await launch(_url)
       : throw 'Could not launch $_url';
@@ -65,27 +72,30 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               Container(
-                child: InkWell(
-                  onTap: () {
-                    _launchURL(_lastShortenedUrl);
-                  },
-                  child: _shortenedUrl != ""
-                      ? Text(
+                child: _shortenedUrl != ""
+                    ? InkWell(
+                        onTap: () {
+                          _launchURL(_shortenedUrl);
+                        },
+                        onLongPress: () {
+                          _shareUrl(_shortenedUrl);
+                        },
+                        child: Text(
                           _shortenedUrl,
                           textAlign: TextAlign.center,
                           style: TextStyle(
                               fontSize: 20, fontWeight: FontWeight.w500),
-                        )
-                      : Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: Text(
-                            "Go ahead and shorten links, it will appear here!",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                fontSize: 20, fontWeight: FontWeight.w500),
-                          ),
                         ),
-                ),
+                      )
+                    : Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Text(
+                          "Go ahead and shorten links, it will appear here!",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.w500),
+                        ),
+                      ),
               ),
               Container(
                 height: 150,
@@ -165,6 +175,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: InkWell(
                         onTap: () {
                           _launchURL(_lastShortenedUrl);
+                        },
+                        onLongPress: () {
+                          _shareUrl(_lastShortenedUrl);
                         },
                         child: Text(
                             "Your last shortened url was: $_lastShortenedUrl"),
