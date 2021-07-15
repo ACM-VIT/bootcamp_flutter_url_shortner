@@ -1,4 +1,6 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -9,6 +11,24 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final textController = TextEditingController();
+
+  Future<String> callApi() async {
+    Dio dio = Dio();
+    var response = await dio.post("");
+    return response.data;
+  }
+
+  saveToSharedPreferences(String shortenedUrl) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString("lastUrl", shortenedUrl);
+  }
+
+  Future<String> getLastUrlFromSharedPreferences() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var lastUrl = prefs.getString("lastUrl") ?? "";
+    return lastUrl;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -28,8 +48,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Text("Image goes here"),
               ),
               Container(
-                height: 125,
-                width: 300,
+                height: 150,
+                width: 350,
                 child: Card(
                   color: Colors.white,
                   child: Column(
@@ -61,6 +81,12 @@ class _HomeScreenState extends State<HomeScreen> {
                               border: OutlineInputBorder(),
                               hintText: 'http://'),
                         ),
+                      ),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                            primary: Color(0XFF22272C)),
+                        onPressed: () {},
+                        child: Text("Shorten"),
                       ),
                     ],
                   ),
