@@ -12,7 +12,21 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Text("Hello world"),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Container(
+              child: Text("Let's  shorten URL's!"),
+            ),
+            Container(
+              child: Text("Image goes here"),
+            ),
+            Container(
+              alignment: Alignment.bottomCenter,
+              child: Text("We will input our URL here"),
+            ),
+          ],
+        ),
       ),
     );
   }
