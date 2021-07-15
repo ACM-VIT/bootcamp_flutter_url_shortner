@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -11,11 +12,24 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final textController = TextEditingController();
+  var _shortenedUrl = "";
+  var _lastShortenedUrl = "";
+  bool isShorteningUrl = false;
 
-  Future<String> callApi() async {
+  @override
+  void initState() {
+    super.initState();
+    getLastUrlFromSharedPreferences();
+  }
+
+  Future<String> callApi(String url) async {
     Dio dio = Dio();
-    var response = await dio.post("");
-    return response.data;
+    var response = await dio.get("https://api.shrtco.de/v2/shorten?url=" + url);
+    print(response);
+    if (response.statusCode != 201) {
+      return Future.error("Failed to shorten the link!");
+    }
+    return response.data["result"]["full_short_link"];
   }
 
   saveToSharedPreferences(String shortenedUrl) async {
@@ -23,11 +37,17 @@ class _HomeScreenState extends State<HomeScreen> {
     prefs.setString("lastUrl", shortenedUrl);
   }
 
-  Future<String> getLastUrlFromSharedPreferences() async {
+  getLastUrlFromSharedPreferences() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var lastUrl = prefs.getString("lastUrl") ?? "";
-    return lastUrl;
+    setState(() {
+      _lastShortenedUrl = lastUrl;
+    });
   }
+
+  _launchURL(String _url) async => await canLaunch(_url)
+      ? await launch(_url)
+      : throw 'Could not launch $_url';
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +65,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               Container(
-                child: Text("Image goes here"),
+                child: InkWell(
+                  onTap: () {
+                    _launchURL(_lastShortenedUrl);
+                  },
+                  child: Text(_shortenedUrl),
+                ),
               ),
               Container(
                 height: 150,
@@ -82,19 +107,52 @@ class _HomeScreenState extends State<HomeScreen> {
                               hintText: 'http://'),
                         ),
                       ),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                            primary: Color(0XFF22272C)),
-                        onPressed: () {},
-                        child: Text("Shorten"),
-                      ),
+                      !isShorteningUrl
+                          ? ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                  primary: Color(0XFF22272C)),
+                              onPressed: () async {
+                                setState(() {
+                                  isShorteningUrl = true;
+                                });
+                                var inputUrl = textController.text;
+                                print(inputUrl);
+                                try {
+                                  var shortenedUrl = await callApi(inputUrl);
+                                  await saveToSharedPreferences(shortenedUrl);
+                                  setState(() {
+                                    _shortenedUrl = shortenedUrl;
+                                    _lastShortenedUrl = shortenedUrl;
+                                    isShorteningUrl = false;
+                                  });
+                                } catch (e) {
+                                  setState(() {
+                                    isShorteningUrl = false;
+                                  });
+                                }
+                              },
+                              child: Text("Shorten"),
+                            )
+                          : CircularProgressIndicator(
+                              color: Color(0XFF22272C),
+                            ),
                     ],
                   ),
                 ),
               ),
-              Container(
-                child: Text("The last url shortened was: "),
-              )
+              _lastShortenedUrl != ""
+                  ? Container(
+                      child: InkWell(
+                        onTap: () {
+                          _launchURL(_lastShortenedUrl);
+                        },
+                        child: Text(
+                            "Your last shortened url was $_lastShortenedUrl"),
+                      ),
+                    )
+                  : Container(
+                      child: Text("You do not have any links saved!"),
+                    ),
             ],
           ),
         ),
