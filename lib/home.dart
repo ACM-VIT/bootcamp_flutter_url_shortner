@@ -69,7 +69,22 @@ class _HomeScreenState extends State<HomeScreen> {
                   onTap: () {
                     _launchURL(_lastShortenedUrl);
                   },
-                  child: Text(_shortenedUrl),
+                  child: _shortenedUrl != ""
+                      ? Text(
+                          _shortenedUrl,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.w500),
+                        )
+                      : Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Text(
+                            "Go ahead and shorten links, it will appear here!",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.w500),
+                          ),
+                        ),
                 ),
               ),
               Container(
@@ -126,6 +141,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                     isShorteningUrl = false;
                                   });
                                 } catch (e) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text("Failed to shorten URL!"),
+                                    ),
+                                  );
                                   setState(() {
                                     isShorteningUrl = false;
                                   });
@@ -147,7 +167,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           _launchURL(_lastShortenedUrl);
                         },
                         child: Text(
-                            "Your last shortened url was $_lastShortenedUrl"),
+                            "Your last shortened url was: $_lastShortenedUrl"),
                       ),
                     )
                   : Container(
